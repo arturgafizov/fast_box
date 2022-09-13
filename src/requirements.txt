@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+pydantic
+python-dotenv
+SQLAlchemy
+alembic
+psycopg2-binary
+SQLAlchemy-Utils
+asyncpg
+databases
