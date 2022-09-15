@@ -1,17 +1,15 @@
-from typing import Optional, List
-from fastapi import FastAPI
+from typing import List
 import fastapi
 from fastapi import Depends, HTTPException
-from sqlalchemy.orm import Session
 from sqlalchemy.ext.asyncio import AsyncSession
+from datetime import datetime
 
-from api.utils.users import get_user, get_user_by_email, create_user, get_users
-from api.utils.courses import get_user_courses
-from db.db_setup import get_db, get_async_db
-from db.models.user import users
-from db.models.course import courses
-from schemas.user import UserCreate, User
-from schemas.course import Course
+from users.utils.users import get_user
+from db.db_setup import get_async_db
+from users.models.user import users
+from courses.models.course import courses
+from users.schemas.user import UserCreate, User
+from courses.schemas.course import Course
 from db.db_setup import database
 
 router = fastapi.APIRouter()
@@ -30,12 +28,26 @@ async def read_users():
     return await database.fetch_all(query)
 
 
+# @router.post("/users", response_model=User, status_code=201)  # sync
+# async def create_new_user(user: UserCreate, db: Session = Depends(get_db)):
+#     db_user = get_user_by_email(db=db, email=user.email)
+#     if db_user:
+#         raise HTTPException(status_code=400, detail="User with such email already exists")
+#     return create_user(db=db, user=user)
+
+
 @router.post("/users", response_model=User, status_code=201)
-async def create_new_user(user: UserCreate, db: Session = Depends(get_db)):
-    db_user = get_user_by_email(db=db, email=user.email)
+async def create_new_user(user: UserCreate):
+    query = users.select()
+    await database.connect()
+    db_user = await database.fetch_one(query.where(users.c.email == user.email))
     if db_user:
         raise HTTPException(status_code=400, detail="User with such email already exists")
-    return create_user(db=db, user=user)
+    fake_hashed_password = user.password + "not_really_hashed"
+    db_user = users.insert().values(email=user.email, role=user.role, password_hash=fake_hashed_password,
+                                    is_active=False, created_at=datetime.now(), updated_at=datetime.now())
+    user_id = await database.execute(db_user)
+    return User(**user.dict(), id=user_id)
 
 
 # @router.get("/users/{user_id}")              #sync
@@ -61,7 +73,6 @@ async def read_user(user_id: int, db: AsyncSession = Depends(get_async_db)):
 
 @router.get("/users/{user_id}/courses", response_model=List[Course])
 async def read_user_courses(user_id: int,):
-    query = courses.select().filter(user_id == user_id)
+    query = courses.select()
     await database.connect()
-    return await database.fetch_all(query)
-
+    return await database.fetch_all(query.where(courses.c.user_id == user_id))

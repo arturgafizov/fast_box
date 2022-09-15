@@ -3,8 +3,9 @@ import enum
 from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, Enum, Text
 from sqlalchemy.orm import relationship
 
-from ..db_setup import Base
+from db.db_setup import Base
 from .mixins import Timestamp
+from db.db_setup import database
 
 
 class Role(enum.IntEnum):

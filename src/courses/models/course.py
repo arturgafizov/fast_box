@@ -1,13 +1,12 @@
-from datetime import datetime
 import enum
 
 from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, Enum, Text
 from sqlalchemy.orm import relationship
 from sqlalchemy_utils import URLType
 
-from ..db_setup import Base
-from .user import User
-from .mixins import Timestamp
+from db.db_setup import Base
+from users.models.user import User
+from users.models.mixins import Timestamp
 
 
 class ContentType(enum.Enum):

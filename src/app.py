@@ -1,7 +1,9 @@
 from fastapi import FastAPI
 
-from api import sections, courses, users
-from db.models import course, user
+from users import routers as users_routers
+from courses import routers as courses_routers, sections
+from users.models import user
+from courses.models import course
 from db.db_setup import engine
 
 user.Base.metadata.create_all(bind=engine) # можно сделать миграцию без create_all
@@ -13,6 +15,6 @@ app = FastAPI(
     version="0.0.1",
 )
 
-app.include_router(users.router)
+app.include_router(users_routers.router)
 app.include_router(sections.router)
-app.include_router(courses.router)
+app.include_router(courses_routers.router)
